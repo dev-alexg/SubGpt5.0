@@ -3,14 +3,9 @@ set -e
 
 cd /var/www/html
 
-# Форсим https ссылки при работе за прокси (по желанию):
-# php -r "file_exists('app/Providers/AppServiceProvider.php') && print('');"
-
-# Генерация ключа, линк на storage, кеши
 php artisan key:generate --force || true
 php artisan storage:link || true
 
-# Ждём БД (если переменные заданы) и накатываем миграции
 if [[ -n "$DB_HOST" && -n "$DB_DATABASE" && -n "$DB_USERNAME" ]]; then
   echo "Waiting for PostgreSQL at ${DB_HOST}:${DB_PORT:-5432}..."
   until php -r "
@@ -30,4 +25,4 @@ php artisan config:cache || true
 php artisan route:cache || true
 php artisan view:cache || true
 
-exec \"$@\"
+exec "$@"

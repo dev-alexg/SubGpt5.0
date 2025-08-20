@@ -6,32 +6,29 @@ RUN npm ci
 COPY frontend/ ./
 RUN npm run build
 
-# ---------- 2) BACKEND (composer) ----------
+# ---------- 2) BACKEND (создаём Laravel skeleton) ----------
 FROM composer:2 AS vendor
 WORKDIR /app
-# Сначала зависимости — кэш слоёв
-COPY backend/composer.* ./
-RUN composer install --no-dev --no-interaction --no-progress --prefer-dist --no-scripts
-# Затем код и перегенерация автозагрузки (если есть post-* скрипты)
-COPY backend/ ./
-RUN composer install --no-dev --no-interaction --no-progress --prefer-dist \
- && composer dump-autoload -o
+ARG LARAVEL_VERSION=11.*
+RUN composer create-project --no-dev --prefer-dist laravel/laravel:"${LARAVEL_VERSION}" .
+# Накатываем поверх твои файлы (если есть)
+COPY backend/ /app/
+RUN composer install --no-dev --no-interaction --optimize-autoloader
 
 # ---------- 3) RUNTIME: PHP-FPM + NGINX + SUPERVISORD ----------
 FROM php:8.3-fpm-alpine AS runtime
 
-# Пакеты и расширения PHP
 RUN apk add --no-cache \
       nginx supervisor curl git bash icu-dev libpq-dev oniguruma-dev \
   && docker-php-ext-configure intl \
   && docker-php-ext-install intl pdo_pgsql bcmath opcache
 
-# Рабочие директории и права
 WORKDIR /var/www/html
 RUN mkdir -p /run/nginx /var/log/supervisor /var/cache/nginx
-# Кладём Laravel
+
+# Laravel скелет и твои оверлеи
 COPY --from=vendor /app /var/www/html
-# Кладём собранный фронт как статику SPA в public/
+# Готовая сборка фронта -> public/
 COPY --from=front /frontend/dist /var/www/html/public
 
 # Конфиги
