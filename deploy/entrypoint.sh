@@ -14,7 +14,13 @@ if [[ -z "$DB_HOST" ]]; then
     DB_PASSWORD="$POSTGRESQL_PASSWORD"
     export DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD
   elif [[ -n "$DATABASE_URL" ]]; then
-    eval $(php -r '$p=parse_url(getenv("DATABASE_URL")); printf("DB_HOST=%s\nDB_PORT=%s\nDB_DATABASE=%s\nDB_USERNAME=%s\nDB_PASSWORD=%s\n", $p["host"], $p["port"], ltrim($p["path"], "/"), $p["user"], $p["pass"]);')
+
+    DB_HOST="$(php -r 'echo parse_url(getenv("DATABASE_URL"), PHP_URL_HOST);')"
+    DB_PORT="$(php -r 'echo parse_url(getenv("DATABASE_URL"), PHP_URL_PORT);')"
+    DB_DATABASE="$(php -r 'echo ltrim(parse_url(getenv("DATABASE_URL"), PHP_URL_PATH), "/");')"
+    DB_USERNAME="$(php -r 'echo parse_url(getenv("DATABASE_URL"), PHP_URL_USER);')"
+    DB_PASSWORD="$(php -r 'echo parse_url(getenv("DATABASE_URL"), PHP_URL_PASS);')"
+
     export DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD
   fi
 fi
