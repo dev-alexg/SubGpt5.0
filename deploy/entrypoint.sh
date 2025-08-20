@@ -18,17 +18,7 @@ if [[ -z "$DB_HOST" ]]; then
 fi
 if [[ -n "$DB_HOST" && -n "$DB_DATABASE" && -n "$DB_USERNAME" ]]; then
   echo "Waiting for PostgreSQL at ${DB_HOST}:${DB_PORT:-5432}..."
-  # Database initialization disabled during startup; remove or uncomment
-  # the lines below to restore waiting for the database and running migrations.
-  # until php -r "
-  #   try {
-  #     new PDO(
-  #       'pgsql:host=' . getenv('DB_HOST') . ';port=' . (getenv('DB_PORT') ?: '5432') . ';dbname=' . getenv('DB_DATABASE'),
-  #       getenv('DB_USERNAME'),
-  #       getenv('DB_PASSWORD')
-  #     );
-  #   } catch (Exception $e) { exit(1); }"; do sleep 2; done
-  # php artisan migrate --force || true
+
 fi
 php artisan config:cache || true
 php artisan route:cache || true
