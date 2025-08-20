@@ -10,7 +10,7 @@ RUN npm run build
 FROM composer:2 AS vendor
 WORKDIR /app
 # Сначала зависимости — кэш слоёв
-COPY backend/composer.json backend/composer.lock ./
+COPY backend/composer.* ./
 RUN composer install --no-dev --no-interaction --no-progress --prefer-dist --no-scripts
 # Затем код и перегенерация автозагрузки (если есть post-* скрипты)
 COPY backend/ ./
