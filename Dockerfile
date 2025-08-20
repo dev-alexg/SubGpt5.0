@@ -2,7 +2,11 @@
 FROM node:20-alpine AS front
 WORKDIR /frontend
 COPY frontend/package*.json ./
-RUN if [ -f package-lock.json ]; then           npm ci --no-audit --progress=false;         else           npm install --no-audit --progress=false;         fi
+RUN if [ -f package-lock.json ]; then \
+          npm ci --no-audit --progress=false; \
+        else \
+          npm install --no-audit --progress=false; \
+        fi
 COPY frontend/ ./
 RUN npm run build
 
@@ -16,15 +20,24 @@ RUN composer install --no-dev --no-interaction --optimize-autoloader
 
 # ---------- 3) RUNTIME: PHP-FPM + NGINX + SUPERVISORD ----------
 FROM php:8.3-fpm-alpine AS runtime
-RUN apk add --no-cache nginx supervisor curl git bash icu-dev libpq-dev oniguruma-dev      && docker-php-ext-configure intl      && docker-php-ext-install intl pdo_pgsql bcmath opcache
+RUN apk add --no-cache nginx supervisor curl git bash icu-dev libpq-dev oniguruma-dev \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-install intl pdo_pgsql bcmath opcache
 WORKDIR /var/www/html
+ENV DB_CONNECTION=pgsql \
+    POSTGRESQL_HOST=192.168.0.4 \
+    POSTGRESQL_PORT=5432 \
+    POSTGRESQL_USER=gen_user \
+    POSTGRESQL_PASSWORD="#M\\HH\$\\\\SUO9T2" \
+    POSTGRESQL_DBNAME=default_db
 RUN mkdir -p /run/nginx /var/log/supervisor /var/cache/nginx
 COPY --from=vendor /app /var/www/html
 COPY --from=front /frontend/dist /var/www/html/public
 COPY deploy/nginx.conf /etc/nginx/http.d/default.conf
 COPY deploy/supervisord.conf /etc/supervisord.conf
 COPY deploy/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh      && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod +x /entrypoint.sh \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 EXPOSE 80
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/usr/bin/supervisord","-n","-c","/etc/supervisord.conf"]
