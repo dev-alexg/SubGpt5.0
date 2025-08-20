@@ -1,0 +1,19 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --debug",
+    "preview": "vite preview --port 4173"
+  },
+  "dependencies": {
+    "axios": "1.7.2",
+    "vue": "3.4.31"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "5.0.5",
+    "vite": "5.2.10"
+  }
+}
