@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -e
 cd /var/www/html
-php artisan key:generate --force || true
+if grep -q '^APP_KEY=$' .env 2>/dev/null; then
+  php artisan key:generate --force || true
+fi
 php artisan storage:link || true
 if [[ -z "$DB_HOST" ]]; then
   if [[ -n "$POSTGRESQL_HOST" ]]; then
